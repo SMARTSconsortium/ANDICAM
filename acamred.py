@@ -118,13 +118,18 @@ def optdomecomb(date):
 #output: in.{B,V,R,I}, are txt files which list images observed in b,v,r, and i filters
 #	out.{B,V,R,I}, are txt files which list the names of those in in* after they are reduced
 def speedup():
-	os.system('rm *junk*')
-	os.system('rm *foco*')			#the observer may have forgotten to delete focus and junk frames
+	#the observer may have forgotten to delete focus, trim, and junk frames
+	if len(glob.glob('*junk*')) > 1:
+		os.system('rm *junk*')
+	if len(glob.glob('*foco*')) > 1:
+		os.system('rm *foco*')
+	if len(glob.glob('*trim*')) > 1:
+		os.system("rm *trim*")
+	
 	os.system("mkdir calibs")
 	os.system("mv *bias* calibs")
 	os.system("mv *ky* calibs")
 	os.system("mv *dome* calibs")
-	os.system("rm *trim*")
 	rawimages=fnmatch.filter(os.listdir('.'),'ccd*.fits')
 	inU=[i for i in rawimages if (pyfits.open(i)[0].header['ccdfltid'] =='U')]
 	with open("in.U",'w') as U:
