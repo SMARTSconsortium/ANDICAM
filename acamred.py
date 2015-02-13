@@ -7,6 +7,7 @@
 import pyfits
 import os
 import fnmatch
+import glob
 from pyraf import iraf
 iraf.prcacheOff()
 
@@ -29,6 +30,10 @@ def domecalibs(band):
 #output: flat.B, a text file that lists the names of the skyflat fits files
 #	ccdYYMMDD.skyflatB.fits, the combined skyflat
 def skyflat(date, low=15000, high=22000, numimages=5):
+	#check if biases are in this directory
+	if len(glob.glob('*.bias.*')) < 1:
+		print "no combined bias found, exiting"
+		return
 	#get image name and mean pixel value for all skyflat images
 	stats=iraf.imstat('*sky*',format=False,fields='image,mean',Stdout=1)
 	pairs=[i.split() for i in stats]
@@ -37,10 +42,10 @@ def skyflat(date, low=15000, high=22000, numimages=5):
 	#keep track of how many good ones there are
 	goodCount=0
 	with open("flat.B") as FB:
-			for i in pairs:
-				if float(i[1]) > low and float(i[1]) < high:
-					FB.write(i[0]+'\n')
-					goodCount+=1
+		for i in pairs:
+			if float(i[1]) > low and float(i[1]) < high:
+				FB.write(i[0]+'\n')
+				goodCount+=1
 
 	if goodCount < numimages:
 		print "only "+str(goodCount)+" skyflats have counts between "+str(low)+" and "+str(high)
