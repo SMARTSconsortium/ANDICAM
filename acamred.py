@@ -41,7 +41,7 @@ def skyflat(date, low=15000, high=22000, numimages=5):
 	#write the names of the skyflats w right ammount of counts to file
 	#keep track of how many good ones there are
 	goodCount=0
-	with open("flat.B") as FB:
+	with open("flat.B",'w') as FB:
 		for i in pairs:
 			if float(i[1]) > low and float(i[1]) < high:
 				FB.write(i[0]+'\n')
@@ -53,9 +53,9 @@ def skyflat(date, low=15000, high=22000, numimages=5):
 		return
 	else:
 		iraf.ccdproc(images="@flat.B",output=" ",fixpix="no",overscan="yes",trim="no",zerocor="yes",darkcor="no",flatcor="no",illumcor="no",fringecor="no",readcor="no",scancor="no",readaxis="line",biassec="[3:14,1:1024]",zero="*.bias.fits",interactive="no",functio="spline3",order=11)
-     	iraf.flatcombine("@flat.B",output="FLAT",combine="median",reject="minmax",process="no",scale="mode",ccdtype="")
+		iraf.flatcombine("@flat.B",output="FLAT",combine="median",reject="minmax",process="no",scale="mode",ccdtype="")
 		os.system("mv FLAT.fits ccd"+str(date)+".skyflatB.fits")
-		print ("made combined skyfla tccd"+str(date)+".skyflatB.fits")
+		print ("made combined skyflat ccd"+str(date)+".skyflatB.fits")
 	return
 
 #combine biases and optical domes
