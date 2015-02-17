@@ -7,6 +7,7 @@
 import pyfits
 import os
 import fnmatch
+import glob
 from pyraf import iraf
 iraf.prcacheOff()
 
@@ -28,16 +29,33 @@ def domecalibs(band):
 #input: the date the skyflats were observed YYMMDD
 #output: flat.B, a text file that lists the names of the skyflat fits files
 #	ccdYYMMDD.skyflatB.fits, the combined skyflat
-def skyflat(date):
-	os.system("ls ccd*ky* > flat.B")
-	with open("flat.B") as FB:
-		fb=FB.read()
-	if len(fb.split('\n'))-1 > 1:
-		iraf.ccdproc(images="@flat.B",output=" ",fixpix="no",overscan="yes",trim="no",zerocor="yes",darkcor="no",flatcor="no",illumcor="no",fringecor="no",readcor="no",scancor="no",readaxis="line",biassec="[3:14,1:1024]",zero="*.bias.fits",interactive="no",functio="spline3",order=11)
-     		iraf.flatcombine("@flat.B",output="FLAT",combine="median",reject="minmax",process="no",scale="mode",ccdtype="")
-		os.system("mv FLAT.fits ccd"+str(date)+".skyflatB.fits")
+def skyflat(date, low=15000, high=22000, numimages=5):
+	#check if biases are in this directory
+	if len(glob.glob('*.bias.*')) < 1:
+		print "no combined bias found, exiting"
+		return
+	#get image name and mean pixel value for all skyflat images
+	stats=iraf.imstat('*sky*',format=False,fields='image,mean',Stdout=1)
+	pairs=[i.split() for i in stats]
+
+	#write the names of the skyflats w right ammount of counts to file
+	#keep track of how many good ones there are
+	goodCount=0
+	with open("flat.B",'w') as FB:
+		for i in pairs:
+			if float(i[1]) > low and float(i[1]) < high:
+				FB.write(i[0]+'\n')
+				goodCount+=1
+
+	if goodCount < numimages:
+		print "only "+str(goodCount)+" skyflats have counts between "+str(low)+" and "+str(high)
+		print "no combined skyflat made"
+		return
 	else:
-		print ("flat.B empty")
+		iraf.ccdproc(images="@flat.B",output=" ",fixpix="no",overscan="yes",trim="no",zerocor="yes",darkcor="no",flatcor="no",illumcor="no",fringecor="no",readcor="no",scancor="no",readaxis="line",biassec="[3:14,1:1024]",zero="*.bias.fits",interactive="no",functio="spline3",order=11)
+		iraf.flatcombine("@flat.B",output="FLAT",combine="median",reject="minmax",process="no",scale="mode",ccdtype="")
+		os.system("mv FLAT.fits ccd"+str(date)+".skyflatB.fits")
+		print ("made combined skyflat ccd"+str(date)+".skyflatB.fits")
 	return
 
 #combine biases and optical domes
@@ -100,13 +118,18 @@ def optdomecomb(date):
 #output: in.{B,V,R,I}, are txt files which list images observed in b,v,r, and i filters
 #	out.{B,V,R,I}, are txt files which list the names of those in in* after they are reduced
 def speedup():
-	os.system('rm *junk*')
-	os.system('rm *foco*')			#the observer may have forgotten to delete focus and junk frames
+	#the observer may have forgotten to delete focus, trim, and junk frames
+	if len(glob.glob('*junk*')) > 1:
+		os.system('rm *junk*')
+	if len(glob.glob('*foco*')) > 1:
+		os.system('rm *foco*')
+	if len(glob.glob('*trim*')) > 1:
+		os.system("rm *trim*")
+	
 	os.system("mkdir calibs")
 	os.system("mv *bias* calibs")
 	os.system("mv *ky* calibs")
 	os.system("mv *dome* calibs")
-	os.system("rm *trim*")
 	rawimages=fnmatch.filter(os.listdir('.'),'ccd*.fits')
 	inU=[i for i in rawimages if (pyfits.open(i)[0].header['ccdfltid'] =='U')]
 	with open("in.U",'w') as U:
