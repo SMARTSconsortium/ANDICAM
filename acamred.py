@@ -119,11 +119,11 @@ def optdomecomb(date):
 #	out.{B,V,R,I}, are txt files which list the names of those in in* after they are reduced
 def speedup():
 	#the observer may have forgotten to delete focus, trim, and junk frames
-	if len(glob.glob('*junk*')) > 1:
+	if len(glob.glob('*junk*')) > 0:
 		os.system('rm *junk*')
-	if len(glob.glob('*foco*')) > 1:
+	if len(glob.glob('*foco*')) > 0:
 		os.system('rm *foco*')
-	if len(glob.glob('*trim*')) > 1:
+	if len(glob.glob('*trim*')) > 0:
 		os.system("rm *trim*")
 	
 	os.system("mkdir calibs")
@@ -196,9 +196,12 @@ def speedup():
 	Ireduced.close()
 	os.system("cat out.U out.B out.V out.R out.I > check")
 	os.chdir("calibs")			#os.system("cd wherever") doesnt work o_O
-	os.system("rm *dome*.0*")
-	os.system("*domeB*")
-	os.system("*bias.0*")
+	if len(glob.glob("*dome*.0*")) > 0:
+		os.system("rm *dome*.0*")
+	if len(glob.glob('*domeB*')) > 0:
+		os.system("rm *domeB*")
+	if len(glob.glob("*bias.0*")) > 0:
+		os.system("rm *bias.0*")
 	iraf.hselect(images="*",fields="$I,date-obs,time-obs,ccdfltid,exptime",expr="yes")
 	print ("------------------------------")
 #	iraf.imstat(images="*ky*[17:1040,3:1026]")
