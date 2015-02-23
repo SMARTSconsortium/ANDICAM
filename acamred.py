@@ -58,6 +58,43 @@ def skyflat(date, low=15000, high=22000, numimages=5):
 		print ("made combined skyflat ccd"+str(date)+".skyflatB.fits")
 	return
 
+def optdomecomb2(date, fwheel):
+	if len(glob.glob('*bias*')) < 1:
+		print "no biases found, exiting"
+		return
+
+	elif fwheel=='bias':
+		biaslist=glob.glob('*bias.[0-9]*')
+		if len(biaslist) > 10:
+			print "only "+str(len(biaslist))+" biases found. you need at least 10"
+		else:
+			with open("bias.list",'w') as BILIS:
+				for i in biaslist:
+					BILIS.write(i+'\n')
+			iraf.zerocombine("@bias.list",output="ccd"+str(date)+".bias.fits",combine="average",reject="minmax",scale="none",ccdtype="",process="no",delete="no",clobber="no",nlow=1,nhigh=1,nkeep=1)
+			print "created ccd"+str(date)+".bias.fits"
+		return
+
+	elif fwheel in ['B','V','R','I']:
+		domelist=glob.glob('*dome'+fwheel+'.[0-9]*')
+		if len(domelist) < 1:
+			print 'no '+fwheel+' domes found'
+		elif len(domelist) > 10:
+			print 'only '+str(len(domelist))+' domes found. you need at least 10'
+		else:
+			with open('flat'+fwheel+'.list', 'w') as flist:
+				for i in domelist:
+					flist.write(i+'\n')
+			iraf.ccdproc("@flat"+flist+".list", output="z@flat"+flist+".list",ccdtype=" ",noproc="no", fixpix="no",overscan="yes", trim="no", zerocor="yes",darkcor="no",flatcor="no", illumcor="no", fringec="no", readcor="no", scancor="no", readaxis="line", biassec="[3:14,1:1024]", zero="ccd"+str(date)+".bais.fits", interactive="no", functio="spline3", order=11)
+			iraf.flatcombine("z@flat"+flist+".list", output="ccd"+str(date)+".dome"+flist+".fits",combine="average", reject="crreject", ccdtype="", process="no", subsets="no", delete="no", clobber="no", scale="mode", rdnoise=6.5, gain=2.3)
+			os.system('rm z*dome'+flist+'*fits')
+			print "created ccd"+str(date)+".dome"+flist+".fits"
+		return
+
+	else:
+		print "your input for the filter was not recognized. Please use either 'bias', 'B', 'V', 'R', or 'I' and try again"
+		return
+
 #combine biases and optical domes
 #Requires: the uncombined fits images
 #	if you are combining a dome, you must have a bias from the same night as the dome to preform appropriate bias subtraction
