@@ -62,37 +62,38 @@ def optdomecomb2(date, fwheel):
 	if len(glob.glob('*bias*')) < 1:
 		print "no biases found, exiting"
 		return
-
-	elif fwheel=='bias':
-		biaslist=glob.glob('*bias.[0-9]*')
-		if len(biaslist) > 10:
-			print "only "+str(len(biaslist))+" biases found. you need at least 10"
-		else:
-			with open("bias.list",'w') as BILIS:
-				for i in biaslist:
-					BILIS.write(i+'\n')
-			iraf.zerocombine("@bias.list",output="ccd"+str(date)+".bias.fits",combine="average",reject="minmax",scale="none",ccdtype="",process="no",delete="no",clobber="no",nlow=1,nhigh=1,nkeep=1)
-			print "created ccd"+str(date)+".bias.fits"
-		return
-
-	elif fwheel in ['B','V','R','I']:
-		domelist=glob.glob('*dome'+fwheel+'.[0-9]*')
-		if len(domelist) < 1:
-			print 'no '+fwheel+' domes found'
-		elif len(domelist) > 10:
-			print 'only '+str(len(domelist))+' domes found. you need at least 10'
-		else:
-			with open('flat'+fwheel+'.list', 'w') as flist:
-				for i in domelist:
-					flist.write(i+'\n')
-			iraf.ccdproc("@flat"+flist+".list", output="z@flat"+flist+".list",ccdtype=" ",noproc="no", fixpix="no",overscan="yes", trim="no", zerocor="yes",darkcor="no",flatcor="no", illumcor="no", fringec="no", readcor="no", scancor="no", readaxis="line", biassec="[3:14,1:1024]", zero="ccd"+str(date)+".bais.fits", interactive="no", functio="spline3", order=11)
-			iraf.flatcombine("z@flat"+flist+".list", output="ccd"+str(date)+".dome"+flist+".fits",combine="average", reject="crreject", ccdtype="", process="no", subsets="no", delete="no", clobber="no", scale="mode", rdnoise=6.5, gain=2.3)
-			os.system('rm z*dome'+flist+'*fits')
-			print "created ccd"+str(date)+".dome"+flist+".fits"
-		return
-
 	else:
-		print "your input for the filter was not recognized. Please use either 'bias', 'B', 'V', 'R', or 'I' and try again"
+		for color in fwheel:
+			if color=='bias':
+				biaslist=glob.glob('*bias.[0-9]*')
+				if len(biaslist) > 10:
+					print "only "+str(len(biaslist))+" biases found. you need at least 10"
+				else:
+					with open("bias.list",'w') as BILIS:
+						for i in biaslist:
+							BILIS.write(i+'\n')
+					iraf.zerocombine("@bias.list",output="ccd"+str(date)+".bias.fits",combine="average",reject="minmax",scale="none",ccdtype="",process="no",delete="no",clobber="no",nlow=1,nhigh=1,nkeep=1)
+					print "created ccd"+str(date)+".bias.fits"
+					os.system('rm bias.list')
+
+			elif color in ['B','V','R','I']:
+				domelist=glob.glob('*dome'+color+'.[0-9]*')
+				if len(domelist) < 1:
+					print 'no '+color+' domes found'
+				elif len(domelist) > 10:
+					print 'only '+str(len(domelist))+' domes found. you need at least 10'
+				else:
+					with open('flat'+color+'.list', 'w') as flist:
+						for i in domelist:
+							flist.write(i+'\n')
+					iraf.ccdproc("@flat"+color+".list", output="z@flat"+color+".list",ccdtype=" ",noproc="no", fixpix="no",overscan="yes", trim="no", zerocor="yes",darkcor="no",flatcor="no", illumcor="no", fringec="no", readcor="no", scancor="no", readaxis="line", biassec="[3:14,1:1024]", zero="ccd"+str(date)+".bias.fits", interactive="no", functio="spline3", order=11)
+					iraf.flatcombine("z@flat"+color+".list", output="ccd"+str(date)+".dome"+color+".fits",combine="average", reject="crreject", ccdtype="", process="no", subsets="no", delete="no", clobber="no", scale="mode", rdnoise=6.5, gain=2.3)
+					os.system('rm z*dome'+color+'*fits')
+					print "created ccd"+str(date)+".dome"+color+".fits"
+					os.system('rm flat'+color+'.list')
+
+			else:
+				print "your input for the filter was not recognized. Please use either 'bias', 'B', 'V', 'R', or 'I' and try again"
 		return
 
 #combine biases and optical domes
@@ -115,7 +116,7 @@ def optdomecomb(date):
 		flvlis=FLVLIS.read()
 	if len(flvlis.split('\n'))-1 > 1:
 		print str(len(flvlis.split('\n'))-1)+" *domeV* found"
-		iraf.ccdproc("@flatv.list", output="z@flatv.list",ccdtype=" ",noproc="no", fixpix="no",overscan="yes", trim="no", zerocor="yes",darkcor="no",flatcor="no", illumcor="no", fringec="no", readcor="no", scancor="no", readaxis="line", biassec="[3:14,1:1024]", zero="ccd"+str(date)+".bais.fits", interactive="no", functio="spline3", order=11)
+		iraf.ccdproc("@flatv.list", output="z@flatv.list",ccdtype=" ",noproc="no", fixpix="no",overscan="yes", trim="no", zerocor="yes",darkcor="no",flatcor="no", illumcor="no", fringec="no", readcor="no", scancor="no", readaxis="line", biassec="[3:14,1:1024]", zero="ccd"+str(date)+".bias.fits", interactive="no", functio="spline3", order=11)
 		iraf.flatcombine("z@flatv.list", output="ccd"+str(date)+".domeV.fits",combine="average", reject="crreject", ccdtype="", process="no", subsets="no", delete="no", clobber="no", scale="mode", rdnoise=6.5, gain=2.3)
 		os.system("rm z*domeV*fits")
 	else:
@@ -126,7 +127,7 @@ def optdomecomb(date):
 		flrlis=FLRLIS.read()
 	if len(flrlis.split('\n'))-1 > 1:
 		print str(len(flrlis.split('\n'))-1)+" *domeR* found"
-		iraf.ccdproc("@flatr.list", output="z@flatr.list",ccdtype=" ",noproc="no", fixpix="no",overscan="yes", trim="no", zerocor="yes",darkcor="no",flatcor="no", illumcor="no", fringec="no", readcor="no", scancor="no", readaxis="line", biassec="[3:14,1:1024]", zero="ccd"+str(date)+".bais.fits", interactive="no", functio="spline3", order=11)
+		iraf.ccdproc("@flatr.list", output="z@flatr.list",ccdtype=" ",noproc="no", fixpix="no",overscan="yes", trim="no", zerocor="yes",darkcor="no",flatcor="no", illumcor="no", fringec="no", readcor="no", scancor="no", readaxis="line", biassec="[3:14,1:1024]", zero="ccd"+str(date)+".bias.fits", interactive="no", functio="spline3", order=11)
 		iraf.flatcombine("z@flatr.list", output="ccd"+str(date)+".domeR.fits",combine="average", reject="crreject", ccdtype="", process="no", subsets="no", delete="no", clobber="no", scale="mode", rdnoise=6.5, gain=2.3)
 		os.system("rm z*domeR*fits")
 	else:
@@ -137,7 +138,7 @@ def optdomecomb(date):
 		flilis=FLILIS.read()
 	if len(flilis.split('\n'))-1 > 1:
 		print str(len(flilis.split('\n'))-1)+" *domeI* found"
-		iraf.ccdproc("@flati.list", output="z@flati.list",ccdtype=" ",noproc="no", fixpix="no",overscan="yes", trim="no", zerocor="yes",darkcor="no",flatcor="no", illumcor="no", fringec="no", readcor="no", scancor="no", readaxis="line", biassec="[3:14,1:1024]", zero="ccd"+str(date)+".bais.fits", interactive="no", functio="spline3", order=11)
+		iraf.ccdproc("@flati.list", output="z@flati.list",ccdtype=" ",noproc="no", fixpix="no",overscan="yes", trim="no", zerocor="yes",darkcor="no",flatcor="no", illumcor="no", fringec="no", readcor="no", scancor="no", readaxis="line", biassec="[3:14,1:1024]", zero="ccd"+str(date)+".bias.fits", interactive="no", functio="spline3", order=11)
 		iraf.flatcombine("z@flati.list", output="ccd"+str(date)+".domeI.fits",combine="average", reject="crreject", ccdtype="", process="no", subsets="no", delete="no", clobber="no", scale="mode", rdnoise=6.5, gain=2.3)
 		os.system("rm z*domeI*fits")
 	else:
