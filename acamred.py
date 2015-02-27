@@ -290,8 +290,8 @@ def reduce(fwheel):
 							iraf.ccdproc(images="@in."+color,output="@out."+color,overscan="yes",trim="yes",zerocor="yes",darkcor="no",flatcor="yes",readaxis="line",biassec="[2:16,3:1026]",trimsec="[17:1040,3:1026]",zero="*.bias.fits",flat="*.dome"+color+".fits",interactive="no",function="spline3",order="11")
 						else:
 							print "No "+color+" images found."
-					else:
-						print color+" is not recognized as a filter. Please use 'B', 'V', 'R', or I"
+				else:
+					print color+" is not recognized as a filter. Please use 'B', 'V', 'R', or I"
 		return
 
 #bias and flat correct all the optical data taken
