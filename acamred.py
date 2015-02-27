@@ -209,6 +209,11 @@ def speedup():
 	os.chdir("../")		#new to this version, go back one directory to processed/ level
 	return
 
+#reduces optical andicam data
+#required: combined optical biases and flats, unreduced data need to be in working directory
+#			also in.{B,V,R,I} and out.{B,V,R,I}, which are text files that list data taken w respective filters
+#input: fwheel is a python list that holds the names of the filters for which you want to reduce
+#output: rccd versions of ccd*.fits images which are bias and flat corrected are output in working directory
 def optreduce(fwheel):
 	#make sure we have a bias so we can bias subtract the data
 	if len(glob.glob('*.bias*')) < 1:
