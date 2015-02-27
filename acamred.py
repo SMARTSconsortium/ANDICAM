@@ -260,34 +260,38 @@ def reduce(fwheel):
 		return
 	else:
 		for color in fwheel:
-			#check that all necessary files exist for reduction, in.color, out.color, .domeColor.fits
+			#check that all necessary files exist for reduction, in.color, out.color
 			if len(glob.glob('in.'+color)) < 1:
 				print "in."+color+" not found. "+color+" data will not be reduced. Please create file and try again"
 			elif len(glob.glob('out.'+color)) < 1:
 				print "out."+color+" not found. "+color+" data will not be reduced. Please create file and try again"
-			elif len(glob.glob('*.dome'+color+'.fits')) < 1:
-				print "no combined "+color+" dome found. "+color+" data will not be reduced. Please create combined "+color+" dome and try again"
 			else:
 				#B data uses the skyflat
 				if color=='B':
-					with open("in.B") as f:
-						num_images=sum(1 for line in f)
-					if num_images > 1:
-						print str(num_images)+" B images found. Reducing ..."
-						iraf.ccdproc(images="@in.B",output="@out.B",overscan="yes",trim="yes",zerocor="yes",darkcor="no",flatcor="yes",readaxis="line",biassec="[2:16,3:1026]",trimsec="[17:1040,3:1026]",zero="*.bias.fits",flat="*.skyflatB.fits",interactive="no",function="spline3",order="11")
+					if len(glob.glob('*.skyflatB*')) < 1:
+						print "no combined B skyflat found. B data will not be reduced. Please create combined B skyflat and try again"
 					else:
-						print "No B images found"
+						with open("in.B") as f:
+							num_images=sum(1 for line in f)
+						if num_images > 1:
+							print str(num_images)+" B images found. Reducing ..."
+							iraf.ccdproc(images="@in.B",output="@out.B",overscan="yes",trim="yes",zerocor="yes",darkcor="no",flatcor="yes",readaxis="line",biassec="[2:16,3:1026]",trimsec="[17:1040,3:1026]",zero="*.bias.fits",flat="*.skyflatB.fits",interactive="no",function="spline3",order="11")
+						else:
+							print "No B images found"
 				#all other data uses domes
 				elif color in ['V','R','I']:
-					with open("in."+color) as f:
-						num_images=sum(1 for line in f)
-					if num_images > 1:
-						print str(num_images)+" "+color+" images found. Reducing ..."
-						iraf.ccdproc(images="@in."+color,output="@out."+color,overscan="yes",trim="yes",zerocor="yes",darkcor="no",flatcor="yes",readaxis="line",biassec="[2:16,3:1026]",trimsec="[17:1040,3:1026]",zero="*.bias.fits",flat="*.dome"+color+".fits",interactive="no",function="spline3",order="11")
+					if len(glob.glob('*.dome'+color+'.fits')) < 1:
+						print "no combined "+color+" dome found. "+color+" data will not be reduced. Please create combined "+color+" dome and try again"
 					else:
-						print "No "+color+" images found."
-				else:
-					print color+" is not recognized as a filter. Please use 'B', 'V', 'R', or I"
+						with open("in."+color) as f:
+							num_images=sum(1 for line in f)
+						if num_images > 1:
+							print str(num_images)+" "+color+" images found. Reducing ..."
+							iraf.ccdproc(images="@in."+color,output="@out."+color,overscan="yes",trim="yes",zerocor="yes",darkcor="no",flatcor="yes",readaxis="line",biassec="[2:16,3:1026]",trimsec="[17:1040,3:1026]",zero="*.bias.fits",flat="*.dome"+color+".fits",interactive="no",function="spline3",order="11")
+						else:
+							print "No "+color+" images found."
+					else:
+						print color+" is not recognized as a filter. Please use 'B', 'V', 'R', or I"
 		return
 
 #bias and flat correct all the optical data taken
