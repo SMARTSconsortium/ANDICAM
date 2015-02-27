@@ -58,7 +58,14 @@ def skyflat(date, low=15000, high=22000, numimages=5):
 		print ("made combined skyflat ccd"+str(date)+".skyflatB.fits")
 	return
 
-def optdomecomb2(date, fwheel):
+#combine biases and optical domes
+#Requires: the uncombined fits images
+#	if you are combining a dome, you must have a bias from the same night as the dome to preform appropriate bias subtraction
+#Input: the date the domes were observed YYMMDD, and fwheel, a list that contains the filters of the domes to be combined
+#Outupt: combined dome fits frame for each color where uncombined frames are in the directory 
+def optdomecomb(date, fwheel=['bias','B','V','R','I']):
+	#convert date to string incase it was entered as an int of float
+	date=str(date)
 	if len(glob.glob('*bias*')) < 1:
 		print "no biases found, exiting"
 		return
@@ -95,57 +102,6 @@ def optdomecomb2(date, fwheel):
 			else:
 				print "your input for the filter was not recognized. Please use either 'bias', 'B', 'V', 'R', or 'I' and try again"
 		return
-
-#combine biases and optical domes
-#Requires: the uncombined fits images
-#	if you are combining a dome, you must have a bias from the same night as the dome to preform appropriate bias subtraction
-#Input: the date the domes were observed YYMMDD
-#Outupt: combined dome fits frame for each color where uncombined frames are in the directory 
-def optdomecomb(date):
-	os.system("ls *bias* > bias.list")
-	with open("bias.list") as BILIS:
-		bilis=BILIS.read()
-	if len(bilis.split('\n'))-1 > 1:
-		print str(len(bilis.split('\n'))-1)+" biases found"
-		iraf.zerocombine("@bias.list",output="ccd"+str(date)+".bias.fits",combine="average",reject="minmax",scale="none",ccdtype="",process="no",delete="no",clobber="no",nlow=1,nhigh=1,nkeep=1)
-	else:
-		print "no biases found"
-	
-	os.system("ls *domeV* > flatv.list")
-	with open("flatv.list") as FLVLIS:
-		flvlis=FLVLIS.read()
-	if len(flvlis.split('\n'))-1 > 1:
-		print str(len(flvlis.split('\n'))-1)+" *domeV* found"
-		iraf.ccdproc("@flatv.list", output="z@flatv.list",ccdtype=" ",noproc="no", fixpix="no",overscan="yes", trim="no", zerocor="yes",darkcor="no",flatcor="no", illumcor="no", fringec="no", readcor="no", scancor="no", readaxis="line", biassec="[3:14,1:1024]", zero="ccd"+str(date)+".bias.fits", interactive="no", functio="spline3", order=11)
-		iraf.flatcombine("z@flatv.list", output="ccd"+str(date)+".domeV.fits",combine="average", reject="crreject", ccdtype="", process="no", subsets="no", delete="no", clobber="no", scale="mode", rdnoise=6.5, gain=2.3)
-		os.system("rm z*domeV*fits")
-	else:
-		print "no V domes found"
-
-	os.system("ls *domeR* > flatr.list")
-	with open("flatr.list") as FLRLIS:
-		flrlis=FLRLIS.read()
-	if len(flrlis.split('\n'))-1 > 1:
-		print str(len(flrlis.split('\n'))-1)+" *domeR* found"
-		iraf.ccdproc("@flatr.list", output="z@flatr.list",ccdtype=" ",noproc="no", fixpix="no",overscan="yes", trim="no", zerocor="yes",darkcor="no",flatcor="no", illumcor="no", fringec="no", readcor="no", scancor="no", readaxis="line", biassec="[3:14,1:1024]", zero="ccd"+str(date)+".bias.fits", interactive="no", functio="spline3", order=11)
-		iraf.flatcombine("z@flatr.list", output="ccd"+str(date)+".domeR.fits",combine="average", reject="crreject", ccdtype="", process="no", subsets="no", delete="no", clobber="no", scale="mode", rdnoise=6.5, gain=2.3)
-		os.system("rm z*domeR*fits")
-	else:
-		print "no R domes found"
-	
-	os.system("ls *domeI* > flati.list")
-	with open("flati.list") as FLILIS:
-		flilis=FLILIS.read()
-	if len(flilis.split('\n'))-1 > 1:
-		print str(len(flilis.split('\n'))-1)+" *domeI* found"
-		iraf.ccdproc("@flati.list", output="z@flati.list",ccdtype=" ",noproc="no", fixpix="no",overscan="yes", trim="no", zerocor="yes",darkcor="no",flatcor="no", illumcor="no", fringec="no", readcor="no", scancor="no", readaxis="line", biassec="[3:14,1:1024]", zero="ccd"+str(date)+".bias.fits", interactive="no", functio="spline3", order=11)
-		iraf.flatcombine("z@flati.list", output="ccd"+str(date)+".domeI.fits",combine="average", reject="crreject", ccdtype="", process="no", subsets="no", delete="no", clobber="no", scale="mode", rdnoise=6.5, gain=2.3)
-		os.system("rm z*domeI*fits")
-	else:
-		print "no I domes found"
-	os.system("rm flat{v,r,i}.list")
-	os.system("rm bias.list")
-	return
 
 #although ANDICAM no longer takes U data, it is simpler
 #to create dummy U lists in.U and out.U and keep using 
@@ -253,7 +209,7 @@ def speedup():
 	os.chdir("../")		#new to this version, go back one directory to processed/ level
 	return
 
-def reduce(fwheel):
+def optreduce(fwheel):
 	#make sure we have a bias so we can bias subtract the data
 	if len(glob.glob('*.bias*')) < 1:
 		print "no combined bias found, exiting. Please place a combined bias in this directory and try agian"
@@ -298,35 +254,11 @@ def reduce(fwheel):
 #required: in.{B,V,R,I}, out.{B,V,R,I}, ccd*fits, dome{V,R,I}, skyflatB, bias
 #input: none
 #output: reduced images, with naming scheme rccd*fits. These are copied to the 'copies' subdirectory
-def ccdproc():
-	with open("in.B") as B:
-		b=B.read()
-	if len(b.split('\n'))-1 > 1:
-		print str(len(b.split('\n'))-1)+" B images found. Reducing ..."
-		iraf.ccdproc(images="@in.B",output="@out.B",overscan="yes",trim="yes",zerocor="yes",darkcor="no",flatcor="yes",readaxis="line",biassec="[2:16,3:1026]",trimsec="[17:1040,3:1026]",zero="*.bias.fits",flat="*.skyflatB.fits",interactive="no",function="spline3",order="11")
-	else:
-		print "No B images found"
-	with open("in.V") as V:
-		v=V.read()
-	if len(v.split('\n'))-1 > 1:
-		print str(len(v.split('\n'))-1)+" V images found. Reducing ..."
-		iraf.ccdproc(images="@in.V",output="@out.V",overscan="yes",trim="yes",zerocor="yes",darkcor="no",flatcor="yes",readaxis="line",biassec="[2:16,3:1026]",trimsec="[17:1040,3:1026]",zero="*.bias.fits",flat="*.domeV.fits",interactive="no",function="spline3",order="11")
-	else:
-		print "No V images found"
-	with open("in.R") as R:
-		r=R.read()
-	if len(r.split('\n'))-1> 1:
-		print str(len(r.split('\n'))-1)+" R images found. Reducing ..."	
-		iraf.ccdproc(images="@in.R",output="@out.R",overscan="yes",trim="yes",zerocor="yes",darkcor="no",flatcor="yes",readaxis="line",biassec="[2:16,3:1026]",trimsec="[17:1040,3:1026]",zero="*.bias.fits",flat="*.domeR.fits",interactive="no",function="spline3",order="11")
-	else:
-		print "No R images found"
-	with open("in.I") as I:
-		i=I.read()
-	if len(i.split('\n'))-1> 1:
-		print str(len(i.split('\n'))-1)+" I images found. Reducing ..."
-		iraf.ccdproc(images="@in.I",output="@out.I",overscan="yes",trim="yes",zerocor="yes",darkcor="no",flatcor="yes",readaxis="line",biassec="[2:16,3:1026]",trimsec="[17:1040,3:1026]",zero="*.bias.fits",flat="*.domeI.fits",interactive="no",function="spline3",order="11")
-	else:
-		print "No I images found"
+def ccdproc(fwheel=['B','V','R','I']):
+	#bias subtract and flat field correct optical images
+	optreduce(fwheel)
+
+	#clean up all the left over crap and backup the calibrtion files
 	os.system("rm ccd*.[0-9]*.fits")	
 	os.system("cp rccd*fits copies/")
 	os.system("cp *.dome{R,V,I}.fits /data/yalo180/yalo/SMARTS13m/PROCESSEDCALS")
