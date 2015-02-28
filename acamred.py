@@ -103,14 +103,10 @@ def optdomecomb(date, fwheel=['bias','B','V','R','I']):
 				print "your input for the filter was not recognized. Please use either 'bias', 'B', 'V', 'R', or 'I' and try again"
 		return
 
-#although ANDICAM no longer takes U data, it is simpler
-#to create dummy U lists in.U and out.U and keep using 
-#pre existing .cl scripts than to rewrite everything
 #prepares optical images for reduction
 #requires: skyflatB, ccd domes, ccd bias, ccd data, in directory when function is run
 #input: none
 #output: in.{B,V,R,I}, are txt files which list images observed in b,v,r, and i filters
-#	out.{B,V,R,I}, are txt files which list the names of those in in* after they are reduced
 def speedup():
 	#the observer may have forgotten to delete focus, trim, and junk frames
 	if len(glob.glob('*junk*')) > 0:
@@ -145,50 +141,7 @@ def speedup():
 	with open("in.I",'w') as I:
 		for i in inI:
 			I.write(i+'\n')
-	#iraf.hselect(images="ccd*",fields="$I", expr='ccdfltid?="U"', Stdout="in.U")	#U data is not taken anymore
-	#iraf.hselect(images="ccd*",fields="$I", expr='ccdfltid?="B"', Stdout="in.B")
-	#iraf.hselect(images="ccd*",fields="$I", expr='ccdfltid?="V"', Stdout="in.V")
-	#iraf.hselect(images="ccd*",fields="$I", expr='ccdfltid?="R"', Stdout="in.R")
-	#iraf.hselect(images="ccd*",fields="$I", expr='ccdfltid?="I"', Stdout="in.I")
-	#os.system("cat in.U in.B in.V in.R in.I > dump")
-	os.system("cp in.U out.U")			#Make dummy out.U for reduction()
-	Breduced=open("out.B","w")
-	Vreduced=open("out.V","w")
-	Rreduced=open("out.R","w")
-	Ireduced=open("out.I","w")
-	with open("in.B") as B:
-		Braw=B.read().split('\n')
-		for i in Braw:
-			if i!='':
-				Breduced.write('r'+i+'\n')
-			else:
-				Breduced.write(i+'\n')
-	Breduced.close()
-	with open("in.V") as V:
-		Vraw=V.read().split('\n')
-		for i in Vraw:
-			if i!='':
-				Vreduced.write('r'+i+'\n')
-			else:
-				Vreduced.write(i+'\n')	
-	Vreduced.close()
-	with open("in.R") as R:
-		Rraw=R.read().split('\n')
-		for i in Rraw:
-			if i!='':
-				Rreduced.write('r'+i+'\n')
-			else:
-				Rreduced.write(i+'\n')	
-	Rreduced.close()
-	with open("in.I") as I:
-		Iraw=I.read().split('\n')
-		for i in Iraw:
-			if i!='':
-				Ireduced.write('r'+i+'\n')
-			else:
-				Ireduced.write(i+'\n')	
-	Ireduced.close()
-	os.system("cat out.U out.B out.V out.R out.I > check")
+
 	os.chdir("calibs")			#os.system("cd wherever") doesnt work o_O
 	if len(glob.glob("*dome*.0*")) > 0:
 		os.system("rm *dome*.0*")
@@ -198,13 +151,9 @@ def speedup():
 		os.system("rm *bias.0*")
 	iraf.hselect(images="*",fields="$I,date-obs,time-obs,ccdfltid,exptime",expr="yes")
 	print ("------------------------------")
-#	iraf.imstat(images="*ky*[17:1040,3:1026]")
 	print ("hsel *ky* $I,ra,dec,ccdfltid,exptime")
 	iraf.hselect(images="*ky*",field="$I,ra,dec,ccdfltid,exptime", expr="yes")
 	print ("------------------------------")
-#	imstat *bi*[17:1040,3:1026]
-#	imstat *do*[17:1040,3:1026]
-#	imstat *ky*[17:1040,3:1026]
 	os.system("mv * ../")
 	os.chdir("../")		#new to this version, go back one directory to processed/ level
 	return
@@ -224,8 +173,8 @@ def optreduce(fwheel):
 			#check that all necessary files exist for reduction, in.color, out.color
 			if len(glob.glob('in.'+color)) < 1:
 				print "in."+color+" not found. "+color+" data will not be reduced. Please create file and try again"
-			elif len(glob.glob('out.'+color)) < 1:
-				print "out."+color+" not found. "+color+" data will not be reduced. Please create file and try again"
+			#elif len(glob.glob('out.'+color)) < 1:
+			#	print "out."+color+" not found. "+color+" data will not be reduced. Please create file and try again"
 			else:
 				#B data uses the skyflat
 				if color=='B':
@@ -236,7 +185,7 @@ def optreduce(fwheel):
 							num_images=sum(1 for line in f)
 						if num_images > 1:
 							print str(num_images)+" B images found. Reducing ..."
-							iraf.ccdproc(images="@in.B",output="@out.B",overscan="yes",trim="yes",zerocor="yes",darkcor="no",flatcor="yes",readaxis="line",biassec="[2:16,3:1026]",trimsec="[17:1040,3:1026]",zero="*.bias.fits",flat="*.skyflatB.fits",interactive="no",function="spline3",order="11")
+							iraf.ccdproc(images="@in.B",output="r@in.B",overscan="yes",trim="yes",zerocor="yes",darkcor="no",flatcor="yes",readaxis="line",biassec="[2:16,3:1026]",trimsec="[17:1040,3:1026]",zero="*.bias.fits",flat="*.skyflatB.fits",interactive="no",function="spline3",order="11")
 						else:
 							print "No B images found"
 				#all other data uses domes
@@ -248,7 +197,7 @@ def optreduce(fwheel):
 							num_images=sum(1 for line in f)
 						if num_images > 1:
 							print str(num_images)+" "+color+" images found. Reducing ..."
-							iraf.ccdproc(images="@in."+color,output="@out."+color,overscan="yes",trim="yes",zerocor="yes",darkcor="no",flatcor="yes",readaxis="line",biassec="[2:16,3:1026]",trimsec="[17:1040,3:1026]",zero="*.bias.fits",flat="*.dome"+color+".fits",interactive="no",function="spline3",order="11")
+							iraf.ccdproc(images="@in."+color,output="r@in."+color,overscan="yes",trim="yes",zerocor="yes",darkcor="no",flatcor="yes",readaxis="line",biassec="[2:16,3:1026]",trimsec="[17:1040,3:1026]",zero="*.bias.fits",flat="*.dome"+color+".fits",interactive="no",function="spline3",order="11")
 						else:
 							print "No "+color+" images found."
 				else:
