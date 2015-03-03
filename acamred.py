@@ -123,14 +123,13 @@ def speedup():
 	
 	rawimages=glob.glob('ccd*.fits')
 	#open in files for writting
-	open("in.B",'w') as B
-	open("in.V",'w') as V
-	open("in.R",'w') as R
-	open("in.I",'w') as I
+	B = open("in.B",'w')
+	V = open("in.V",'w')
+	R = open("in.R",'w')
+	I = open("in.I",'w')
 
-	for i in rawimages:
-		hdulist=pyfits.open(i)
-		im=hdulist[0].header['FILENAME']
+	for im in rawimages:
+		hdulist=pyfits.open(im)
 		filt=hdulist[0].header['CCDFLTID']
 		hdulist.close()
 		if filt=='B':
@@ -292,6 +291,16 @@ def IRsort():
 			os.system("mv -v "+ i +" /data/yalo180/yalo/SMARTS13m/IR/ir"+owner)
 	#iraf.imdelete(images='rccd*fits')		
 	return
+
+def compare(ims):
+    for i in ims:
+       hdun=pyfits.open(i)
+       datan=hdun[0].data
+       hdun.close()
+       hduo=pyfits.open('../processed/'+i)
+       datao=hduo[0].data
+       hduo.close()
+       print (datan - datao).sum()
 
 #this function calls the others above and changes directories when needed, to preform the entire reduction process
 #required: start in the YYMMDD/ccd/processed direcotry for the date you want to reduce
