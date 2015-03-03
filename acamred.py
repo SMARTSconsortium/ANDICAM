@@ -120,27 +120,36 @@ def speedup():
 	os.system("mv *bias* calibs")
 	os.system("mv *ky* calibs")
 	os.system("mv *dome* calibs")
-	rawimages=fnmatch.filter(os.listdir('.'),'ccd*.fits')
-	inU=[i for i in rawimages if (pyfits.open(i)[0].header['ccdfltid'] =='U')]
-	with open("in.U",'w') as U:
-		for i in inU:
-			U.write(i+'\n')
-	inB=[i for i in rawimages if (pyfits.open(i)[0].header['ccdfltid'] =='B')]
-	with open("in.B",'w') as B:
-		for i in inB:
-			B.write(i+'\n')
-	inV=[i for i in rawimages if (pyfits.open(i)[0].header['ccdfltid'] =='V' or pyfits.open(i)[0].header['ccdfltid'] =='V+ND4')]
-	with open("in.V",'w') as V:
-		for i in inV:
-			V.write(i+'\n')
-	inR=[i for i in rawimages if (pyfits.open(i)[0].header['ccdfltid'] =='R')]
-	with open("in.R",'w') as R:
-		for i in inR:
-			R.write(i+'\n')
-	inI=[i for i in rawimages if (pyfits.open(i)[0].header['ccdfltid'] =='I' or pyfits.open(i)[0].header['ccdfltid'] =='I+ND4')]
-	with open("in.I",'w') as I:
-		for i in inI:
-			I.write(i+'\n')
+	
+	rawimages=glob.glob('ccd*.fits')
+	#open in files for writting
+	open("in.B",'w') as B
+	open("in.V",'w') as V
+	open("in.R",'w') as R
+	open("in.I",'w') as I
+
+	for i in rawimages:
+		hdulist=pyfits.open(i)
+		im=hdulist[0].header['FILENAME']
+		filt=hdulist[0].header['CCDFLTID']
+		hdulist.close()
+		if filt=='B':
+			B.write(im+'\n')
+		elif filt=='V' or filt=='V+ND4':
+			V.write(im+'\n')
+		elif filt=='R':
+			R.write(im+'\n')
+		elif filt=='I' or filt=='I+ND4':
+			I.write(im+'\n')
+		else:
+			print "filter for "+im+" is listed as "+filt+" and is not recognized"
+			print im+" will not be reduced"
+
+	#close in files
+	B.close()
+	V.close()
+	R.close()
+	I.close()
 
 	os.chdir("calibs")			#os.system("cd wherever") doesnt work o_O
 	if len(glob.glob("*dome*.0*")) > 0:
