@@ -14,9 +14,9 @@ from pyraf import iraf
 iraf.prcacheOff()
 
 def domecalibs(band):
-'''
-dont use this, its still under construction
-'''
+	'''
+	dont use this, its still under construction
+	'''
 	bandcomb=iraf.ls("*.dome"+band+".fits", Stdout=1)
 	if len(bandframes) == 1:
 		return
@@ -28,14 +28,14 @@ dont use this, its still under construction
 		return
 
 def skyflat(date, low=15000, high=22000, numimages=5):
-'''
-make a combined b skyflat. 
-Requires: a bias image in same directory to do the bias subtraction
-	skyflats must be offset and have appropriate count number
-input: the date the skyflats were observed YYMMDD
-output: flat.B, a text file that lists the names of the skyflat fits files
-	ccdYYMMDD.skyflatB.fits, the combined skyflat
-'''
+	'''
+	make a combined b skyflat. 
+	Requires: a bias image in same directory to do the bias subtraction
+		skyflats must be offset and have appropriate count number
+	input: the date the skyflats were observed YYMMDD
+	output: flat.B, a text file that lists the names of the skyflat fits files
+		ccdYYMMDD.skyflatB.fits, the combined skyflat
+	'''
 	#check if biases are in this directory
 	if len(glob.glob('*.bias.*')) < 1:
 		print "no combined bias found, exiting"
@@ -65,13 +65,13 @@ output: flat.B, a text file that lists the names of the skyflat fits files
 	return
 
 def optdomecomb(date, fwheel=['bias','B','V','R','I']):
-'''
-#combine biases and optical domes
-#Requires: the uncombined fits images
-#	if you are combining a dome, you must have a bias from the same night as the dome to preform appropriate bias subtraction
-#Input: the date the domes were observed YYMMDD, and fwheel, a list that contains the filters of the domes to be combined
-#Outupt: combined dome fits frame for each color where uncombined frames are in the directory 
-'''
+	'''
+	#combine biases and optical domes
+	#Requires: the uncombined fits images
+	#	if you are combining a dome, you must have a bias from the same night as the dome to preform appropriate bias subtraction
+	#Input: the date the domes were observed YYMMDD, and fwheel, a list that contains the filters of the domes to be combined
+	#Outupt: combined dome fits frame for each color where uncombined frames are in the directory 
+	'''
 	#convert date to string incase it was entered as an int of float
 	date=str(date)
 	if len(glob.glob('*bias*')) < 1:
@@ -112,12 +112,12 @@ def optdomecomb(date, fwheel=['bias','B','V','R','I']):
 		return
 
 def speedup():
-'''
-prepares optical images for reduction
-requires: skyflatB, ccd domes, ccd bias, ccd data, in directory when function is run
-input: none
-output: in.{B,V,R,I}, are txt files which list images observed in b,v,r, and i filters
-'''
+	'''
+	prepares optical images for reduction
+	requires: skyflatB, ccd domes, ccd bias, ccd data, in directory when function is run
+	input: none
+	output: in.{B,V,R,I}, are txt files which list images observed in b,v,r, and i filters
+	'''
 	#the observer may have forgotten to delete focus, trim, and junk frames
 	if len(glob.glob('*junk*')) > 0:
 		os.system('rm *junk*')
@@ -177,14 +177,14 @@ output: in.{B,V,R,I}, are txt files which list images observed in b,v,r, and i f
 	return
 
 def optreduce(fwheel):
-'''
-reduces optical andicam data
-required: combined optical biases and flats, unreduced data need to be in working directory
-			also in.{B,V,R,I} and out.{B,V,R,I}, which are text files that list data taken w respective filters
-input: fwheel is a python list that holds the names of the filters for which you want to reduce
-output: rccd versions of ccd*.fits images which are bias and flat corrected are output in working directory
-	make sure we have a bias so we can bias subtract the data
-'''
+	'''
+	reduces optical andicam data
+	required: combined optical biases and flats, unreduced data need to be in working directory
+				also in.{B,V,R,I} and out.{B,V,R,I}, which are text files that list data taken w respective filters
+	input: fwheel is a python list that holds the names of the filters for which you want to reduce
+	output: rccd versions of ccd*.fits images which are bias and flat corrected are output in working directory
+		make sure we have a bias so we can bias subtract the data
+	'''
 	if len(glob.glob('*.bias*')) < 1:
 		print "no combined bias found, exiting. Please place a combined bias in this directory and try agian"
 		return
@@ -225,12 +225,12 @@ output: rccd versions of ccd*.fits images which are bias and flat corrected are 
 		return
 
 def ccdproc(fwheel=['B','V','R','I']):
-'''
-bias and flat correct all the optical data taken
-required: in.{B,V,R,I}, out.{B,V,R,I}, ccd*fits, dome{V,R,I}, skyflatB, bias
-input: none
-output: reduced images, with naming scheme rccd*fits. These are copied to the 'copies' subdirectory
-'''
+	'''
+	bias and flat correct all the optical data taken
+	required: in.{B,V,R,I}, out.{B,V,R,I}, ccd*fits, dome{V,R,I}, skyflatB, bias
+	input: none
+	output: reduced images, with naming scheme rccd*fits. These are copied to the 'copies' subdirectory
+	'''
 	#bias subtract and flat field correct optical images
 	optreduce(fwheel)
 
@@ -243,13 +243,13 @@ output: reduced images, with naming scheme rccd*fits. These are copied to the 'c
 	return
 
 def CCDsort():
-'''
-move the reduced ccd data to the appropriate project directory under /data/yalo180/yalo/SMARTS13m/CCD
-required: the data you want to copy
-input: none
-output: owners.lis, a txt file that lists the project owners for the fits files in this directory
-	owners.lis is needed for the ftp upload shell scripts
-'''
+	'''
+	move the reduced ccd data to the appropriate project directory under /data/yalo180/yalo/SMARTS13m/CCD
+	required: the data you want to copy
+	input: none
+	output: owners.lis, a txt file that lists the project owners for the fits files in this directory
+		owners.lis is needed for the ftp upload shell scripts
+	'''
 	#os.remove('/data/yalo180/yalo/SMARTS13m/CCD/owners.lis')
 	fitsimages=fnmatch.filter(os.listdir('.'),'r*.fits')
 	owners=set([pyfits.open(i)[0].header['owner'] for i in fitsimages])
@@ -277,13 +277,13 @@ output: owners.lis, a txt file that lists the project owners for the fits files 
 	return
 
 def IRsort():
-'''
-move the reduced ir data to the appropriate project directory under /data/yalo180/yalo/SMARTS13m/IR
-required: the data you want to copy
-input: none
-output: owners.lis, a txt file that lists the project owners for the fits files in this directory
-	owners.lis is needed for the ftp upload shell scripts
-'''
+	'''
+	move the reduced ir data to the appropriate project directory under /data/yalo180/yalo/SMARTS13m/IR
+	required: the data you want to copy
+	input: none
+	output: owners.lis, a txt file that lists the project owners for the fits files in this directory
+		owners.lis is needed for the ftp upload shell scripts
+	'''
 	#os.remove('/data/yalo180/yalo/SMARTS13m/CCD/owners.lis')
 	fitsimages=fnmatch.filter(os.listdir('.'),'binir*.fits')
 	owners=set([pyfits.open(i)[0].header['owner'] for i in fitsimages])
@@ -311,33 +311,34 @@ output: owners.lis, a txt file that lists the project owners for the fits files 
 	return
 
 def compare(ims):
-'''
-this is a small routine to check if the files, contained in the list ims
-are identical to those with the same name in a paralell directory named processed
-its kind of hard coded and i wrote it quickly
-i made dirs called 'temp' parallel to 'raw' and 'processed' which i copied everything from raw into
-then ran reduction routines after i made changes to them
-then run this routine to see if the reduced images are different at all
-it prints out the sum of the differences in the fits images. you want to see a bunch of zeros
-'''
-    for i in ims:
-       hdun=pyfits.open(i)
-       datan=hdun[0].data
-       hdun.close()
-       hduo=pyfits.open('../processed/'+i)
-       datao=hduo[0].data
-       hduo.close()
-       print (datan - datao).sum()
+	'''
+	this is a small routine to check if the files, contained in the list ims
+	are identical to those with the same name in a paralell directory named processed
+	its kind of hard coded and i wrote it quickly
+	i made dirs called 'temp' parallel to 'raw' and 'processed' which i copied everything from raw into
+	then ran reduction routines after i made changes to them
+	then run this routine to see if the reduced images are different at all
+	it prints out the sum of the differences in the fits images. you want to see a bunch of zeros
+	'''
+	for i in ims:
+		hdun=pyfits.open(i)
+		datan=hdun[0].data
+		hdun.close()
+		hduo=pyfits.open('../processed/'+i)
+		datao=hduo[0].data
+		hduo.close()
+		print (datan - datao).sum()
+	return
 
 def reduceall():
-'''
-this function calls the others above and changes directories when needed, to preform the entire reduction process
-required: start in the YYMMDD/ccd/processed direcotry for the date you want to reduce
-	either move calibration frames into this directory, or create new ones using combflat and optdomecomb (above)
-	execute function and everything will (hopefully) work
-input:none
-output:none
-'''
+	'''
+	this function calls the others above and changes directories when needed, to preform the entire reduction process
+	required: start in the YYMMDD/ccd/processed direcotry for the date you want to reduce
+		either move calibration frames into this directory, or create new ones using combflat and optdomecomb (above)
+		execute function and everything will (hopefully) work
+	input:none
+	output:none
+	'''
 	#filterwheel=['V','R','I']
 	#for f in filterwheel:
 	#	sort.domecalibs(f)
