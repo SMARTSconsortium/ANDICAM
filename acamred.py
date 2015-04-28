@@ -270,7 +270,7 @@ def CCDsort():
 		elif owner=='STANDARD' or owner=='STANDARDFIELD':
 			os.system("mv "+ i +' /data/yalo180/yalo/SMARTS13m/CCD/ccdstandards/')
 		elif owner=='YALE-03A-0009':
-			os.system("mv "+ i +' /data/yalo180/yalo/SMARTS13m/ccdNOAO-08B-0001')
+			os.system("mv "+ i +' /data/yalo180/yalo/SMARTS13m/CCD/ccdNOAO-08B-0001')
 		elif owner!='ALL':
 			os.system("mv -v "+ i +" /data/yalo180/yalo/SMARTS13m/CCD/ccd"+owner)
 	#iraf.imdelete(images='rccd*fits')		
@@ -304,7 +304,7 @@ def IRsort():
 		elif owner=='STANDARD' or owner=='STANDARDFIELD':
 			os.system("mv -v "+ i +' /data/yalo180/yalo/SMARTS13m/IR/irstandards/')
 		elif owner=='YALE-03A-0009':
-			os.system("mv -v "+ i +' /data/yalo180/yalo/SMARTS13m/irNOAO-08B-0001')
+			os.system("mv -v "+ i +' /data/yalo180/yalo/SMARTS13m/IR/irNOAO-08B-0001')
 		elif owner!='ALL':
 			os.system("mv -v "+ i +" /data/yalo180/yalo/SMARTS13m/IR/ir"+owner)
 	#iraf.imdelete(images='rccd*fits')		
