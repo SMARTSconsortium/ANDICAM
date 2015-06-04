@@ -15,19 +15,19 @@ Reducing Data
 the python  module acamred.py contains several functions to reduce optical data, and stage the optical data and ir data so it can be uploaded to the smarts ftp site. to run the reduction, first switch users to yalo. then at your shell prompt, type pyraf to begin a pyraf session. Once the pyraf prompt come up, follow the instructions below
 
 1) import the reduction module
--->import acamred
+''''-->import acamred''''
 
 2) change directories to the reduced sub directory for the date you are interested in
---> cd /data/yalo180/yalo/SMARTS13m/YYYYMMDD/ccd/reduced
+''''--> cd /data/yalo180/yalo/SMARTS13m/YYYYMMDD/ccd/reduced''''
 
 3) if biases, optical domes, or skyflats were taken that night but need to be combined, use the acamred module
---> acamred.optdomecomb(YYMMDD)
---> acamred.skyflat(YYMMDD)
+''''--> acamred.optdomecomb(YYMMDD)''''
+''''--> acamred.skyflat(YYMMDD)''''
 
 4) if you need to copy over old domes or skyflats from a previous night, do it now
 
 5) once everything is in place, execute the reduction pipeline
---> acamred.reduceall()
+''''--> acamred.reduceall()''''
 
 the reduceall function will also call shell scripts that upload the data to the ftp site, discussed below in greater detail
 
