@@ -1,0 +1,2 @@
+dates=`ls -d /data/yalo180/yalo/SMARTS13m/20*`
+for i in $dates; do rsync -r --ignore-existing $i /media/SMARTS3/archive/${i:29:6}'01ThruEnd'/; done
