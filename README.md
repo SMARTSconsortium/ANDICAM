@@ -20,7 +20,9 @@ the python  module acamred.py contains several functions to reduce optical data,
 ```
 
 2) change directories to the reduced sub directory for the date you are interested in
-```--> cd /data/yalo180/yalo/SMARTS13m/YYYYMMDD/ccd/reduced```
+```
+--> cd /data/yalo180/yalo/SMARTS13m/YYYYMMDD/ccd/reduced
+```
 
 3) if biases, optical domes, or skyflats were taken that night but need to be combined, use the acamred module
 ```python
