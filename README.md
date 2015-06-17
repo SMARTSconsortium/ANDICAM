@@ -83,6 +83,30 @@ cd /data/yalo180/yalo/SMARTS13m
 ./autoarchive2
 ```
 
+Setting Up The Crontab
+-----------------------
+the cron daemons are listed in a crontab for the user yalo on the machine thuban. if you ever need to reinstall the crontab, follow the instructions below
+
+1) as the user yalo, at the shell prompt type
+```shell
+crontab -e
+```
+this will open up the crontab in the text editor vi for editing, or create a new one for editing if there is no crontab
+
+2) press 'I' on your keyboard so you can insert text, and insert the following:
+```shell
+SHELL=/bin/bash
+MAILTO=imran.hasan@yale.edu,emily.machpherson@yale.edu
+0 7 * * * /data/yalo180/yalo/SMARTS13m/autodates
+0 15 * * * /data/yalo180/yalo/SMARTS13m/autoarchive2
+```
+the first line sets the shell enviornment to bash. this important because yalo's default shell is tcsh, but the scripts are written for bash.
+the second line sets the mailto variable. this is the email address(s) that any output-including error messages-is sent to. you can put as many as you want, so long as they are seperated by a comma
+the last two lines are instructions, at 7AM and 3PM of every day of every week of every month, execute the listed programs.
+
+3) once you are finished inputting all of that, on you keyboard hit 'escape', and the ':w return' to save the changes, and ':q return' to quit.
+
+
 Suggested Improvements
 ----------------------
 1. occasionally autodates will fail if there is poor connection to CTIO, if there was no data taken the previous night, if the observer did not stage the data correctly, or if the observer did stage the data correctly but only after the crondaemon called autodates. it would be nice if autodates was able to deal with these intelligently
