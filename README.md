@@ -121,4 +121,4 @@ Suggested Improvements
 2. turn autodates into a function that accepts the date as input. that way you can rsync data over from previous nights
 3. the autoarchive2 script will fail if the external hard drive is not mounted to thuban. it would be helpful if it had a small routine that checked if it was mounted, and mounted it if need be
 4. the acamred module has no way of dealing with ircalibration frames. i looked at the user defined iraf task domecombineir that suzanne and michelle wrote, but i was too scared of it to translate it to PyRAF for the pipeline. so i left it for someone else to do :trollface:
-5. often you have to copy optical calibrations over from previous nights to reduce a particular night. it would be nice if there was a routine that did this for you
+5. make a database-or something like it-that will keep an organized running log of what targets were observed, at what times and airmass, etc. it could make searching for observations easier.
