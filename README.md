@@ -36,7 +36,15 @@ the python  module acamred.py contains several functions to reduce optical data,
 --> acamred.skyflat(YYMMDD)
 ```
 
-4) if you need to copy over old domes or skyflats from a previous night, do it now
+4) if you need to copy over old optical domes or skyflats from a previous night, you can us cpCals. For example, to copy all domes and skyflats from a previous date,
+```python
+-->acamred.cpCals(20150801)
+```
+to copy particular flats over from a previous date
+```
+-->acamred.cpCals(20150801,['sky','V',I'])
+```
+will copy over anyfiles with 'V','sky', or 'I' in the filename. You can refer to the source code for more details on using cpCals. Note that this only works for optical calibrtions, and does not look for biases by default.
 
 5) once everything is in place, execute the reduction pipeline
 ```python
