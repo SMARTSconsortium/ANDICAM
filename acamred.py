@@ -6,28 +6,35 @@ the pyraf wrapper prevents caching problems and lets us easily change directorie
 some projects have special places to pick up data, like the blazar group
 the photometric standards, xrb group, and bethany. specific checks are made for those data
 '''
-import pyfits
-import os
-import fnmatch
-import glob
+import pyfits, os, fnmatch, glob, subprocess
 from pyraf import iraf
 iraf.prcacheOff()
 
-def domecalibs(band):
+def cpCals(date, fwheel=['sky','V','R','I'], outdir='.'):
 	'''
-	dont use this, its still under construction
+	copy the calibration frames from the date specified by "date" to the directory specefied by "outdir"
+	input:
+	date: YYYYMMDD of the date directory you want to get data from. program will look under
+		/data/yalo180/yalo/SMARTS13m/date/ccd/processed/ for calibrations
+	fwheel: python list specifying the filters of the calibrations you want to copy. by default includes all of them
+	outdir: string specifying the path you want to copy the calibrations to. by default set to "."
+	output:
+	None
 	'''
-	bandcomb=iraf.ls("*.dome"+band+".fits", Stdout=1)
-	if len(bandframes) == 1:
-		return
-	elif len(bandframes) == 0:
-		banduncomb=iraf.ls("dome"+band+".*.fits", Stdout=1)
-		if len(banduncomb) != 10:
-			oldband=iraf.ls("/data/yalo180/yalo/SMARTS13m/PROCESSEDCALS/ccd*.dome"+band+".fits", Stdout=1)
-			iraf.imcopy(oldband[-1], output='.')
-		return
+	date=str(date)
 
-def skyflat(date, low=15000, high=22000, numimages=5):
+	if len(glob.glob('/data/yalo180/yalo/SMARTS13m/'+date)) == 1:
+		for f in fwheel:
+			try: 
+				subprocess.check_output('cp -v /data/yalo180/yalo/SMARTS13m/'+date+'/ccd/processed/ccd*'+f+'*.fits '+ outdir, shell=True)
+			except subprocess.CalledProcessError:
+				print "unable to copy %s calibrations from /data/yalo180/yalo/SMARTS13m/%s/ccd/processed" % (f, date)
+	else:
+		print "the directory /data/yalo180/yalo/SMARTS13m/%s cannot be found" % date
+	
+	return
+
+def skyflat(date, low=15000, high=23000, numimages=5):
 	'''
 	make a combined b skyflat. 
 	Requires: a bias image in same directory to do the bias subtraction
