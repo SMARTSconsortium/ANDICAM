@@ -42,7 +42,7 @@ the python  module acamred.py contains several functions to reduce optical data,
 ```
 to copy particular flats over from a previous date
 ```
--->acamred.cpCals(20150801,['sky','V',I'])
+-->acamred.cpCals(20150801,fwheel=['sky','V',I'])
 ```
 will copy over anyfiles with 'V','sky', or 'I' in the filename. You can refer to the source code for more details on using cpCals. Note that this only works for optical calibrtions, and does not look for biases by default.
 
